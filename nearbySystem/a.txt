@@ -1,0 +1,4 @@
+Executed SQL Statement : alter table `nearby_db`.`registration_master` drop column `avgrating`,
+   add column `avgrating` double(6) NULL after `profile` 
+Error Number : 1064 
+Error Message: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near ') NULL after `profile`' at line 2 
