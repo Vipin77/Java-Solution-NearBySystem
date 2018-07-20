@@ -8,20 +8,13 @@
    
   <dependencies>
 
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>3.8.1</version>
-			<scope>test</scope>
-		</dependency>
-
 		<!-- https://mvnrepository.com/artifact/mysql/mysql-connector-java -->
 		<dependency>
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>
 			<version>5.1.6</version>
 		</dependency>
-
+    
 
 		<!-- https://mvnrepository.com/artifact/org.codehaus.jackson/jackson-mapper-asl -->
 		<dependency>
@@ -113,20 +106,20 @@
 			<version>2.3.1</version>
 		</dependency>
 
-
-		<!-- https://mvnrepository.com/artifact/postgresql/postgresql -->
+<!-- 
+		https://mvnrepository.com/artifact/postgresql/postgresql
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
 			<version>9.4-1200-jdbc41</version>
 		</dependency>
-		<!-- https://mvnrepository.com/artifact/org.postgresql/postgresql -->
+		https://mvnrepository.com/artifact/org.postgresql/postgresql
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
 			<version>42.0.0</version>
 		</dependency>
-
+ -->
 
 
 		<dependency>
@@ -142,11 +135,11 @@
 		</dependency>
 
 		<!-- multipart -->
-		<dependency>
+		<!-- <dependency>
 			<groupId>commons-fileupload</groupId>
 			<artifactId>commons-fileupload</artifactId>
 			<version>1.2.2</version>
-		</dependency>
+		</dependency> -->
 
 		<dependency>
 			<groupId>org.apache.commons</groupId>

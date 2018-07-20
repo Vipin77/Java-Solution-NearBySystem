@@ -1,7 +1,5 @@
 <html>
 <body>
-<% response.sendRedirect("adminHome"); %>
-
-
+<% response.sendRedirect("user"); %>
 </body>
 </html>

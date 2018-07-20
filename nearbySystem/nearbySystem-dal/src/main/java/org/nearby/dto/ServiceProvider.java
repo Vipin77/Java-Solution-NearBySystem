@@ -8,7 +8,8 @@ public class ServiceProvider {
 	private String firstName;
 	private String lastName;
 	private String mobileNumber;
-	private Blob profile;
+	private String password;
+	private Blob   profile;
 	private byte[] img;
 	private Double latitude;
 	private Double longitude;
@@ -18,7 +19,34 @@ public class ServiceProvider {
     private double avgrating;
     private List<String> review;
     private double rating;
+    private String businessName;
+	private String homeService;
 	
+	
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+	public String getBusinessName() {
+		return businessName;
+	}
+
+	public void setBusinessName(String businessName) {
+		this.businessName = businessName;
+	}
+
+	public String getHomeService() {
+		return homeService;
+	}
+
+	public void setHomeService(String homeService) {
+		this.homeService = homeService;
+	}
+
 	public int getSpId() {
 		return spId;
 	}

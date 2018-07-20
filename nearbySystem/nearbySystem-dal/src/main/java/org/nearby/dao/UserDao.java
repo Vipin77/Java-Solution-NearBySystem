@@ -6,6 +6,7 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,9 +19,12 @@ import org.nearby.dto.EmployerRegistration;
 import org.nearby.dto.JobCategory;
 import org.nearby.dto.JobMaster;
 import org.nearby.dto.Registration;
+import org.nearby.dto.ReviewDto;
 import org.nearby.dto.ServiceDto;
 import org.nearby.dto.ServiceProvider;
+import org.nearby.dto.UserDto;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCreator;
@@ -32,37 +36,37 @@ import com.mysql.jdbc.Blob;
 @Repository
 public class UserDao {
 
+	private static final UserDto UserDto = null;
 	@Autowired
 	JdbcTemplate template;
 
 	public void storeSp(Registration userRegistration) throws IOException, SerialException, SQLException {
 		// TODO Auto-generated method stub
-
-		final Integer subCategoryId = template
+       	final Integer subCategoryId = template
 				.queryForObject("select subcategoryId from service_category where service='"
 						+ userRegistration.getSubCategory() + "'and categoryId=" + userRegistration.getCategory()
 						+ " and type= '" + userRegistration.getType() + "'", Integer.class);
 
-		final String query = "insert into registration_master(firstName,lastName,mobileNumber,email,address,state,city,isdeleted,isactive,createdDate,updatedDate,subcategoryId,profile,avgrating) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+		final String query = "insert into registration_master(firstName,lastName,mobileNumber,email,address,state,city,isdeleted,isactive,createdDate,updatedDate,subcategoryId,profile,avgrating,homeService,businessName,password) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
 		final Timestamp timestamp = new Timestamp(System.currentTimeMillis());
 
 		final String firstName = userRegistration.getFirstName();
 		final String lastName = userRegistration.getLastName();
 		final String mobileNumber = userRegistration.getMobileNumber();
+		final String password = userRegistration.getPassword();
 		final String email = userRegistration.getEmail();
 		final String address = userRegistration.getAddress();
- 
-		
-		
-		 final String city = userRegistration.getCity();
+		final String businessName = userRegistration.getBusinessName();
+		final String homeSevice = userRegistration.getHomeService();
+		final String city = userRegistration.getCity();
 		final String state = userRegistration.getState();
 		String country = "India";
 
 		final List<String> latOrLong = AddressConverter
 				.getLatorLong(address + "," + city + "," + state + "," + country);
 
-		final SerialBlob blob=new javax.sql.rowset.serial.SerialBlob(userRegistration.getProfile());
+		final SerialBlob blob = new javax.sql.rowset.serial.SerialBlob(userRegistration.getProfile());
 		int status = template.update(new PreparedStatementCreator() {
 
 			public PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
@@ -80,14 +84,17 @@ public class UserDao {
 				ps.setTimestamp(10, timestamp);
 				ps.setTimestamp(11, timestamp);
 				ps.setInt(12, subCategoryId);
-                ps.setBlob(13, blob);
-				ps.setDouble(14,0);
+				ps.setBlob(13, blob);
+				ps.setDouble(14, 0);
+				ps.setString(15, homeSevice);
+				ps.setString(16, businessName);
+				ps.setString(17, password);
 				return ps;
 			}
 		});
 
 		final Integer spId = template.queryForObject(
-				"select spId from registration_master where email= '" + userRegistration.getEmail() + "'",
+				"select spId from registration_master where mobileNumber= '" + userRegistration.getMobileNumber() + "'",
 				Integer.class);
 
 		final String query2 = "insert into sp_master(spId,latitude,longitude) values(?,?,?)";
@@ -105,6 +112,53 @@ public class UserDao {
 			}
 		});
 
+	}
+	
+	public int storeUser(UserDto uDto) throws IOException, SerialException, SQLException {
+		// TODO Auto-generated method stub
+
+		final String query = "insert into user_master(firstName,lastName,mobile,password,emailId,address,city,state,country,profile,latitude,longitude,isdeleted,isactive,createdDate,updatedDate) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+
+		final Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+		final String firstName = uDto.getFirstName();
+		final String lastName = uDto.getLastName();
+		final String mobileNumber = uDto.getMobile();
+		final String password = uDto.getPassword();
+		final String email = uDto.getEmailId();
+		final String address = uDto.getAddress();
+		final String city = uDto.getCity();
+		final String state = uDto.getState();
+		final String country = "India";
+
+		final List<String> latOrLong = AddressConverter
+				.getLatorLong(address + "," + city + "," + state + "," + country);
+
+		final SerialBlob blob = new javax.sql.rowset.serial.SerialBlob(uDto.getProfile());
+		int status = template.update(new PreparedStatementCreator() {
+
+			public PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
+
+				PreparedStatement ps = connection.prepareStatement(query);
+				ps.setString(1, firstName);
+				ps.setString(2, lastName);
+				ps.setString(3, mobileNumber);
+				ps.setString(4, password);
+				ps.setString(5, email);
+				ps.setString(6, address);
+				ps.setString(7, city);
+				ps.setString(8, state);
+				ps.setString(9, country);
+				ps.setBlob(10, blob);
+				ps.setDouble(11, Double.parseDouble(latOrLong.get(0)));
+				ps.setDouble(12, Double.parseDouble(latOrLong.get(1)));
+				ps.setInt(13, 0);
+				ps.setInt(14, 0);
+				ps.setTimestamp(15, timestamp);
+				ps.setTimestamp(16, timestamp);
+				return ps;
+			}
+		});
+		return status;
 	}
 
 	public void storeCategoryType(final String categoryType) {
@@ -167,10 +221,11 @@ public class UserDao {
 		}
 		return list;
 	}
-	
+
 	public List<String> fetchAllEmail() {
 		// TODO Auto-generated method stub
-		List<Registration> dto = template.query("select email from registration_master",new BeanPropertyRowMapper<Registration>(Registration.class));
+		List<Registration> dto = template.query("select email from registration_master",
+				new BeanPropertyRowMapper<Registration>(Registration.class));
 		List<String> list = new ArrayList<String>();
 
 		for (Registration local : dto) {
@@ -178,14 +233,39 @@ public class UserDao {
 		}
 		return list;
 	}
-	
+
 	public List<String> fetchAllMobile() {
 		// TODO Auto-generated method stub
-		List<Registration> dto = template.query("select mobileNumber from registration_master",new BeanPropertyRowMapper<Registration>(Registration.class));
+		List<Registration> dto = template.query("select mobileNumber from registration_master",
+				new BeanPropertyRowMapper<Registration>(Registration.class));
 		List<String> list = new ArrayList<String>();
 
 		for (Registration local : dto) {
 			list.add(local.getMobileNumber());
+		}
+		return list;
+	}
+	
+	public List<String> fetchAllUserMobile() {
+		// TODO Auto-generated method stub
+		List<UserDto> dto = template.query("select mobile from user_master",
+				new BeanPropertyRowMapper<UserDto>(UserDto.class));
+		List<String> list = new ArrayList<String>();
+
+		for (UserDto local : dto) {
+			list.add(local.getMobile());
+		}
+		return list;
+	}
+	
+	public List<String> fetchAllUserEmail() {
+		// TODO Auto-generated method stub
+		List<UserDto> dto = template.query("select emailId from user_master",
+				new BeanPropertyRowMapper<UserDto>(UserDto.class));
+		List<String> list = new ArrayList<String>();
+
+		for (UserDto local : dto) {
+			list.add(local.getEmailId());
 		}
 		return list;
 	}
@@ -216,12 +296,12 @@ public class UserDao {
 		for (Integer subCategoryId : subCategoryIdList) {
 
 			List<ServiceProvider> list = template.query(
-					"SELECT s.firstName,s.mobileNumber,s.profile,s.lastname,p.latitude,p.longitude,( 6371 * ACOS( COS( RADIANS(" + latitude
-							+ "  ) ) * COS( RADIANS( p.latitude ) ) * COS( RADIANS( p.longitude )- RADIANS(" + longitude
-							+ " ) ) + SIN( RADIANS( " + latitude
+					"SELECT s.firstName,s.mobileNumber,s.email,s.address,s.spId,s.profile,s.avgrating,s.lastname,s.businessName,p.latitude,p.longitude,( 6371 * ACOS( COS( RADIANS("
+							+ latitude + "  ) ) * COS( RADIANS( p.latitude ) ) * COS( RADIANS( p.longitude )- RADIANS("
+							+ longitude + " ) ) + SIN( RADIANS( " + latitude
 							+ ") ) * SIN( RADIANS( p.latitude ) ) ) ) AS distance FROM registration_master s ,sp_master p , service_category sc WHERE  sc.subcategoryId="
 							+ subCategoryId
-							+ " AND sc.subcategoryId=s.subcategoryId AND s.spId=p.spId HAVING distance <500",
+							+ " AND sc.subcategoryId=s.subcategoryId AND s.spId=p.spId HAVING distance <5",
 					new BeanPropertyRowMapper<ServiceProvider>(ServiceProvider.class));
 			providers.addAll(list);
 		}
@@ -326,9 +406,8 @@ public class UserDao {
 		final Double salary = dto.getSalary();
 		final String type = dto.getType();
 		final String jd = dto.getJobDescription();
-		final Integer jobCategory= Integer.parseInt(dto.getJobCategory());
-		final String jobSubCategory= dto.getJobSubCategory();
-		
+		final Integer jobCategory = Integer.parseInt(dto.getJobCategory());
+		final String jobSubCategory = dto.getJobSubCategory();
 
 		int status = template.update(new PreparedStatementCreator() {
 
@@ -398,7 +477,7 @@ public class UserDao {
 		final String fatherName = dto.getFatherName();
 		final String gender = dto.getGender();
 		final String mobNo = dto.getMobileNumber();
-		final String password=dto.getPassword();
+		final String password = dto.getPassword();
 		final String email = dto.getEmail();
 		final String conAddress = dto.getContactAddress();
 		final String perAddres = dto.getPermanentAddress();
@@ -411,7 +490,7 @@ public class UserDao {
 		final String education = dto.getEducationDetails();
 		final String identity = dto.getIdentity();
 		final Timestamp timeStamp = new Timestamp(System.currentTimeMillis());
-		 template.update(new PreparedStatementCreator() {
+		template.update(new PreparedStatementCreator() {
 			public PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
 
 				PreparedStatement ps = connection.prepareStatement(query);
@@ -443,8 +522,8 @@ public class UserDao {
 	}
 
 	public List<JobCategory> fetchAllJobCategory() {
-		// TODO Auto-generated method stub		
-		
+		// TODO Auto-generated method stub
+
 		List<JobCategory> list = template.query("select * from job_category",
 				new BeanPropertyRowMapper<JobCategory>(JobCategory.class));
 		return list;
@@ -452,10 +531,10 @@ public class UserDao {
 
 	public List<String> fetchAllSubCategory(int cid) {
 		// TODO Auto-generated method stub
-		
+
 		List<JobCategory> list2 = template.query("select * from job_subcategory where jobCategoryId=" + cid + " ",
 				new BeanPropertyRowMapper<JobCategory>(JobCategory.class));
-		
+
 		List<String> list = new ArrayList<String>();
 
 		for (JobCategory local : list2) {
@@ -463,60 +542,153 @@ public class UserDao {
 			list.add(local.getSubCategory());
 
 		}
-		
-		
+
 		return list;
 	}
-	
+
 	public List<JobMaster> fetchAvailableJobs(String userId) {
 		// TODO Auto-generated method stub
 		try {
-			String jobNeeded = template
-					.queryForObject("select jobNeeded from employee_registration_master where employeeId='"+userId+"'", String.class);
+			String jobNeeded = template.queryForObject(
+					"select jobNeeded from employee_registration_master where employeeId='" + userId + "'",
+					String.class);
 			if (jobNeeded != null) {
-				List<JobMaster> list = template.query("select * from job_master where jobSubCategory='"+jobNeeded+"'",
+				List<JobMaster> list = template.query(
+						"select * from job_master where jobSubCategory='" + jobNeeded + "'",
 						new BeanPropertyRowMapper<JobMaster>(JobMaster.class));
 				return list;
 			}
-			
-		  }catch (Exception e) {
-			  e.printStackTrace();
-			  return null;
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
 		}
 		return null;
 	}
-	
+
 	public List<EmployeeRegistration> fetchAvailableEmployee(String subCatValue) {
 		// TODO Auto-generated method stub
-		
-		List<EmployeeRegistration> list = template.query("select * from employee_registration_master where jobNeeded='"+subCatValue+"'",
+
+		List<EmployeeRegistration> list = template.query(
+				"select * from employee_registration_master where jobNeeded='" + subCatValue + "'",
 				new BeanPropertyRowMapper<EmployeeRegistration>(EmployeeRegistration.class));
 		return list;
 	}
-	
-	public List<ServiceProvider> fetchSearchProvider(String city,String area,String subCategory) {
+
+	public List<ServiceProvider> fetchSearchProvider(String city, String area, String subCategory) {
 
 		List<Integer> subCategoryIdList = template.queryForList(
 				"select subcategoryId from service_category where service='" + subCategory + "'", Integer.class);
-		
+
 		List<ServiceProvider> providers = new ArrayList<ServiceProvider>();
-		
+
 		for (Integer subCategoryId : subCategoryIdList) {
 
-			List<ServiceProvider> list = template.query("SELECT s.spId,s.firstName,s.mobileNumber,s.lastname,s.address,s.email,s.profile,s.avgrating,p.latitude,p.longitude FROM registration_master s ,sp_master p WHERE city LIKE '%"+city+"%' AND address LIKE '%"+area+"%' AND subcategoryId="+subCategoryId+" AND s.spId=p.spId",
-					new BeanPropertyRowMapper<ServiceProvider>(ServiceProvider.class));
+			List<ServiceProvider> list = template
+					.query("SELECT s.spId,s.businessName,s.firstName,s.mobileNumber,s.lastname,s.address,s.email,s.profile,s.avgrating,p.latitude,p.longitude FROM registration_master s ,sp_master p WHERE city LIKE '%"
+							+ city + "%' AND address LIKE '%" + area + "%' AND subcategoryId=" + subCategoryId
+							+ " AND s.spId=p.spId", new BeanPropertyRowMapper<ServiceProvider>(ServiceProvider.class));
 			providers.addAll(list);
 		}
 		return providers;
 	}
-	
-	public List<ServiceProvider> fetchReview(String spId) {
+
+	public List<ReviewDto> fetchReview(String spId) {
+
+		List<ReviewDto> providers = new ArrayList<ReviewDto>();
+
+		List<ReviewDto> list = template.query("SELECT review,rating,userId FROM sp_review WHERE spId=" + spId + "",
+				new BeanPropertyRowMapper<ReviewDto>(ReviewDto.class));
 		
-		List<ServiceProvider> providers = new ArrayList<ServiceProvider>();
-		
-		List<ServiceProvider> list = template.query("SELECT review,rating FROM sp_review WHERE spId="+spId+"",
-				new BeanPropertyRowMapper<ServiceProvider>(ServiceProvider.class));
 		providers.addAll(list);
 		return providers;
 	}
+	
+	public int addReview(final int spId,final String review,final int userId,final double rating) {
+
+		final String query2 = "insert into sp_review(spId,userId,review,rating) values(?,?,?,?)";
+
+		int status = template.update(new PreparedStatementCreator() {
+
+			public PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
+
+				PreparedStatement ps = connection.prepareStatement(query2);
+				ps.setInt(1, spId);
+				ps.setInt(2, userId);
+				ps.setString(3,review);
+				ps.setDouble(4,rating);
+
+				return ps;
+			}
+		});
+		List<ReviewDto> providers = new ArrayList<ReviewDto>();
+		List<ReviewDto> list = template.query("SELECT rating FROM sp_review WHERE spId=" + spId + "",
+				new BeanPropertyRowMapper<ReviewDto>(ReviewDto.class));
+		providers.addAll(list);
+		
+		double rat=0;
+		for(ReviewDto rDto:providers){
+			rat=rat+Double.parseDouble(rDto.getRating());
+		}
+		double noofrating=list.size();
+	    double avgrating=rat/noofrating;
+	    DecimalFormat df = new DecimalFormat(".#");
+	    avgrating= Double.parseDouble(df.format(avgrating));
+	    template.update("UPDATE registration_master SET avgrating='"+avgrating+"' WHERE spId='"+spId+"'");
+        return status;
+	}
+	
+	public UserDto fetchUser(String mobile, String password) {
+		try {
+			UserDto user = template
+					.queryForObject("select * from user_master where mobile= '" + mobile
+							+ "' and password= '" +password+ "'",new BeanPropertyRowMapper<UserDto>(UserDto.class));
+			if (user != null) {
+				System.out.println("Login user "+user.getFirstName());
+				return user;
+			}
+		} catch (Exception e) {
+			return null;
+		}
+		return null;
+	}
+	
+	public int verifySp(String mobile, String password) {
+		try {
+			Integer user = template
+					.queryForObject("select spId from registration_master where mobileNumber= '" + mobile
+							+ "' and password= '" + password + "'", Integer.class);
+			if (user != null) {
+				return user;
+			}
+		} catch (Exception e) {
+			return 0;
+		}
+		return 0;
+	}
+	
+	public ServiceProvider fetchSp(String spId) {
+		try {
+			ServiceProvider user = template
+					.queryForObject("select * from registration_master where spId= '" +spId+"'",new BeanPropertyRowMapper<ServiceProvider>(ServiceProvider.class));
+			if (user != null) {
+				System.out.println("Login user "+user.getFirstName());
+				return user;
+			}
+		   }catch (EmptyResultDataAccessException e) {
+			return null;
+		} 
+		catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+		return null;
+	}
+	
+	public UserDto fetchUser(String userId) {
+				UserDto user=  template.queryForObject("SELECT * FROM user_master WHERE userId=" + userId + "",
+				new BeanPropertyRowMapper<UserDto>(UserDto.class));
+		return user;
+	}
+
 }

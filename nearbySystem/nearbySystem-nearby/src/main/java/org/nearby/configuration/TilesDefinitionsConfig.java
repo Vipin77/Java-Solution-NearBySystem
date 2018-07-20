@@ -44,6 +44,12 @@ public final class TilesDefinitionsConfig implements DefinitionsFactory {
 		
 		addDefaultLayoutDef("searchSp", TilesIConstant.SEARCH_SP,TilesIConstant.HEADER, TilesIConstant.FOOTER);
 		
-	
+		addDefaultLayoutDef("userLoginPage", TilesIConstant.USERLOGIN_PAGE,"","");
+		
+		addDefaultLayoutDef("userRegistration", TilesIConstant.USERREGISTRATION_PAGE,"", TilesIConstant.FOOTER);
+		
+		addDefaultLayoutDef("spHome", TilesIConstant.SP_HOME,"", "");
+		
+		addDefaultLayoutDef("spLoginPage", TilesIConstant.SPLOGIN_PAGE,"","");
 	}
 }

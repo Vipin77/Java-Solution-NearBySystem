@@ -4,26 +4,23 @@ import java.io.IOException;
 import java.sql.Blob;
 import java.sql.SQLException;
 import java.util.List;
-
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import javax.sql.rowset.serial.SerialException;
-import javax.validation.Valid;
-
 import org.nearby.dao.UserDao;
 import org.nearby.dto.CategoryType;
 import org.nearby.dto.Registration;
+import org.nearby.dto.ReviewDto;
 import org.nearby.dto.ServiceProvider;
+import org.nearby.dto.UserDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.multipart.MultipartFile;
@@ -39,10 +36,58 @@ public class HomeController {
 
 	@RequestMapping(value = "/adminHome")
 	public String adminHome() {
-
 		return "loginPage";
 	}
+	
+	@RequestMapping(value = "/spLoginPage")
+	public String spLoginPage() {
+		return "spLoginPage";
+	}
+	
+	@RequestMapping(value = "/sploginVerify", method = RequestMethod.POST)
+	public ModelAndView sploginVerify(HttpServletRequest servletRequest) throws SQLException {
 
+		String mobile = servletRequest.getParameter("userName");
+		String pass = servletRequest.getParameter("password");
+        
+		int spId=userDao.verifySp(mobile, pass);
+		if(spId!=0){
+			HttpSession session = servletRequest.getSession(true);
+			session.setAttribute("spId",spId);
+			ModelAndView map = new ModelAndView("spHome");
+			return map;
+		}
+		ModelAndView map = new ModelAndView("spLoginPage");
+		map.addObject("message", "Invalid username and password");
+		return map;
+	}
+	
+	@RequestMapping(value = "/fetchsp",method = RequestMethod.POST,produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ServiceProvider> fetchsp(HttpServletRequest request) throws SQLException {
+		String Id = request.getParameter("spId");
+        ServiceProvider spDto = userDao.fetchSp(Id);
+			Blob blob = spDto.getProfile();
+			int blobLength = (int) blob.length();  
+			byte[] blobAsBytes = blob.getBytes(1, blobLength);
+			spDto.setImg(blobAsBytes);
+			spDto.setProfile(null);
+        return new ResponseEntity<ServiceProvider>(spDto,HttpStatus.OK);
+	}
+	
+	@RequestMapping(value = "/splogout")
+	public String splogout(HttpServletRequest request, RedirectAttributes redirectAttributes) {
+
+		HttpSession session = request.getSession(false);
+		session.invalidate();
+		redirectAttributes.addFlashAttribute("message", "Logout successfully");
+		return "redirect:/spLoginPage";
+	}
+
+	@RequestMapping(value = "/userLoginPage")
+	public String userLoginPage() {
+		return "userLoginPage";
+	}
+	
 	@RequestMapping(value = "/logout")
 	public String logout(HttpServletRequest request, RedirectAttributes redirectAttributes) {
 
@@ -50,6 +95,63 @@ public class HomeController {
 		session.invalidate();
 		redirectAttributes.addFlashAttribute("message", "Logout successfully");
 		return "redirect:/adminHome";
+	}
+	
+	@RequestMapping(value = "/userlogout")
+	public ModelAndView userlogout(HttpServletRequest request) {
+
+		HttpSession session = request.getSession(false);
+		session.invalidate();
+		List<CategoryType> listOfCategory = userDao.fetchType();
+		ModelAndView map = new ModelAndView("userHome");
+		map.addObject("listOfType", listOfCategory);
+		return map;
+	}
+	
+	@RequestMapping(value = "/userRegistration")
+	public ModelAndView userRegistration(Model model) {
+		model.addAttribute("userDto", new UserDto());
+		
+		ModelAndView map = new ModelAndView("userRegistration");
+		return map;
+	}
+	
+	@RequestMapping(value = "/storeUser", method = RequestMethod.POST )
+	public String userSp(HttpServletRequest request,RedirectAttributes redirectAttributes) throws IOException, SerialException, SQLException{
+
+		MultipartHttpServletRequest multiRequest = (MultipartHttpServletRequest) request;
+		MultipartFile file = multiRequest.getFile("profile");
+		byte []b=file.getBytes();
+		 String firstName=request.getParameter("firstName");
+		 String lastName=request.getParameter("lastName");
+		 String mobile=request.getParameter("mobile");
+		 String password=request.getParameter("password");
+		 String email=request.getParameter("emailId");
+		 String address=request.getParameter("address");
+		 String country=request.getParameter("country").trim();
+		 String state=request.getParameter("state").trim();
+		 String city=request.getParameter("city").trim();
+		 
+		 UserDto userDto=new UserDto();
+		 userDto.setFirstName(firstName);
+		 userDto.setLastName(lastName);
+		 userDto.setMobile(mobile);
+		 userDto.setPassword(password);
+		 userDto.setEmailId(email);
+		 userDto.setAddress(address);
+		 userDto.setCity(city);
+		 userDto.setState(state);
+		 userDto.setCountry(country);
+		 userDto.setProfile(b);
+		 
+		 int result=userDao.storeUser(userDto);
+		 
+		 if(result==1){
+		   redirectAttributes.addFlashAttribute("message", "Registration successfully");
+		 }else{
+		 redirectAttributes.addFlashAttribute("message", "Registration Failed");
+		 }
+		return "redirect:/userRegistration";
 	}
 
 	@RequestMapping(value = "/addSp")
@@ -70,27 +172,43 @@ public class HomeController {
 		MultipartFile file = multiRequest.getFile("profile");
 		byte []b=file.getBytes();
 		 
+		 String businessName=request.getParameter("businessName");
 		 String firstName=request.getParameter("firstName");
 		 String lastName=request.getParameter("lastName");
 		 String mobileNumber=request.getParameter("mobileNumber");
+		 String password=request.getParameter("password");
 		 String email=request.getParameter("email");
 		 String address=request.getParameter("address");
 		 Integer categoryId=Integer.parseInt(request.getParameter("categoryId"));
 		 String subCategory=request.getParameter("subCategory");
 		 String state=request.getParameter("state").trim();
 		 String city=request.getParameter("city").trim();
-		
-		Registration user=new Registration();
+		 String homeService=request.getParameter("homeService").trim();
+		 
+		 Registration user=new Registration();
+		 
+           if(lastName.equals("")){
+        	   user.setLastName("Not specified");
+		   }else{
+			   user.setLastName(lastName);
+		   }
+           if(email.equals("")){
+        	   user.setEmail("Not specified");
+		   }else{
+			   user.setEmail(email);
+		   }
+        user.setBusinessName(businessName);
 		user.setFirstName(firstName);
-		user.setLastName(lastName);
 		user.setMobileNumber(mobileNumber);
-		user.setEmail(email);
+		user.setPassword(password);
+		System.out.println(user.getPassword()+" ........");
 		user.setAddress(address);
 		user.setCategoryId(categoryId);
 		user.setSubCategory(subCategory);
 		user.setState(state);
 		user.setCity(city);
 		user.setProfile(b);
+		user.setHomeService(homeService);
 		
 		String str = user.getSubCategory();
   
@@ -112,13 +230,9 @@ public class HomeController {
 
 		if (userId.equals("admin") && pass.equals("admin")) {
 			HttpSession session = servletRequest.getSession(true);
-
 			return "adminHomePage";
-
 		}
-
 		redirectAttributes.addFlashAttribute("message", "Invalid username and password");
-
 		return "redirect:/adminHome";
 	}
 
@@ -208,9 +322,16 @@ public class HomeController {
 	}
 	
 	@RequestMapping(value = "/fetchReview",method = RequestMethod.POST,produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<List<ServiceProvider>> fetchReview(HttpServletRequest request){
+	public ResponseEntity<List<ReviewDto>> fetchReview(HttpServletRequest request){
 		String spId = request.getParameter("id");
-		List<ServiceProvider> reviews=userDao.fetchReview(spId);
-        return new ResponseEntity<List<ServiceProvider>>(reviews,HttpStatus.OK);
+		List<ReviewDto> reviews=userDao.fetchReview(spId);
+        return new ResponseEntity<List<ReviewDto>>(reviews,HttpStatus.OK);
+	}
+	
+	@RequestMapping(value = "/fetchUser",method = RequestMethod.POST,produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<UserDto> fetchUser(HttpServletRequest request){
+		String userId = request.getParameter("userId");
+		UserDto user=userDao.fetchUser(userId);
+        return new ResponseEntity<UserDto>(user,HttpStatus.OK);
 	}
 }

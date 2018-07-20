@@ -2,16 +2,12 @@ package org.nearby.dto;
 
 import java.security.Timestamp;
 
-import javax.validation.constraints.Size;
-
-import org.hibernate.validator.constraints.Email;
-import org.hibernate.validator.constraints.NotEmpty;
-
 public class Registration {
      
 	private String firstName;
 	private String lastName;
 	private String mobileNumber;
+	private String password;
 	private String email;
 	private String address;
 	private Integer isdeleted;
@@ -25,7 +21,24 @@ public class Registration {
 	private String city;
 	private byte[] profile;
 	private double avgrating;
-	
+	 private String businessName;
+		private String homeService;
+		
+		public String getBusinessName() {
+			return businessName;
+		}
+
+		public void setBusinessName(String businessName) {
+			this.businessName = businessName;
+		}
+
+		public String getHomeService() {
+			return homeService;
+		}
+
+		public void setHomeService(String homeService) {
+			this.homeService = homeService;
+		}
 	
 	public double getAvgrating() {
 		return avgrating;
@@ -161,6 +174,14 @@ public class Registration {
 
 	public void setSubCategory(String subCategory) {
 		this.subCategory = subCategory;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
 	}
 
 	

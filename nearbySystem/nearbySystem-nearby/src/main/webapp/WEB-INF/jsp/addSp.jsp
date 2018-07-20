@@ -1,4 +1,3 @@
-
 <%@ page isELIgnored="false"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form"%>
@@ -149,14 +148,16 @@ function fetchServices(cid)
 	
 	$('#existingServices').find("option").remove();
 	$.ajax({
-		url : "fetchServices?cid=" + cid,
+		url : "fetchServices?cid=" + cid,         
 		async : false,
-		data : {
+		data : { 
 			cid : cid
 		},
 		type : "GET",
 		dataType : "json",
 		success : function(data) {
+			
+			$('#existingServices').append("<option></option>");
 			$.each(data, function(key, value) {
 				
 				$('#existingServices').append($("<option></option>").attr('value', value).text(value));
@@ -185,7 +186,12 @@ function fetchServices(cid)
 					<form:form id="myPlanForm" name="myForm" class="form-horizontal style-form"
 						action="storeSp" method="post" cammandName="registration" enctype="multipart/form-data" >
 
-
+                       <div class="form-group">
+							<label class="col-sm-2 col-sm-2 control-label">Business Name</label>
+							<div class="col-sm-10">
+								<input type="text" name="businessName" class="form-control" required="required">
+							</div>
+						</div>
 						<div class="form-group">
 							<label class="col-sm-2 col-sm-2 control-label">First Name</label>
 							<div class="col-sm-10">
@@ -195,7 +201,7 @@ function fetchServices(cid)
 						<div class="form-group">
 							<label class="col-sm-2 col-sm-2 control-label">Last Name</label>
 							<div class="col-sm-10">
-								<input type="text" name="lastName" class="form-control" required="required">
+								<input type="text" name="lastName" class="form-control">
 							</div>
 						</div>
                         <mob>
@@ -206,11 +212,17 @@ function fetchServices(cid)
 							</div><div style="margin-left: 18%; color: red" class="col-sm-10" id="mobilecheck"></div>
 						</div></mob>
 
-
+                        <div class="form-group">
+							<label class="col-sm-2 col-sm-2 control-label">Password</label>
+							<div class="col-sm-10">
+								<input type="password" name="password" class="form-control" required="required">
+							</div>
+						</div>
+                        
 						<a><div class="form-group">
 							<label class="col-sm-2 col-sm-2 control-label">Email</label>
 							<div class="col-sm-10">
-								<input type="email" name="email" class="form-control" required="required">
+								<input type="email" name="email" class="form-control">
 							</div><div style="margin-left: 18%; color: red" class="col-sm-10" id="emailcheck"></div>
 						</div></a>
 
@@ -284,7 +296,18 @@ function fetchServices(cid)
 								</select>
 							</div>
 						</div>
-
+              
+              <div class="form-group">
+							<label class="col-sm-2 col-sm-2 control-label">Home Service</label>
+							<div class="col-sm-10">
+								 <select id="homeService" name="homeService" class="form-control">
+                                <option value="yes" selected="selected">Yes
+                                 <option value="no" selected="selected">No
+                                  <option value="" selected="">-- Select choice --</option>
+                              </select>
+							</div>
+						</div>
+              
               <div class="form-group">
 							<label class="col-sm-2 col-sm-2 control-label">Profile Picture</label>
 							<div class="col-sm-10">

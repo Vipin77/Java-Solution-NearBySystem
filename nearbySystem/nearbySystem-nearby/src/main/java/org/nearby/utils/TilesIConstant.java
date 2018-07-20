@@ -14,7 +14,10 @@ public class TilesIConstant {
 	public static final String SEARCH_SP= "/WEB-INF/jsp/searchSp.jsp";
 	public static final String ADD_SUBCATEGORY= "/WEB-INF/jsp/addSubCategory.jsp";
 	public static final String USER_HOME= "/WEB-INF/jsp/userHome.jsp";
-	
+	public static final String USERLOGIN_PAGE = "/WEB-INF/jsp/userLoginPage.jsp";
+	public static final String USERREGISTRATION_PAGE = "/WEB-INF/jsp/userRegistration.jsp";
+	public static final String SP_HOME= "/WEB-INF/jsp/spHome.jsp";
+	public static final String SPLOGIN_PAGE = "/WEB-INF/jsp/spLoginPage.jsp";
 	public static final String FOOTER = "/WEB-INF/layout/footer.jsp";
 	
 }

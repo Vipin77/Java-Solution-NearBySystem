@@ -3,7 +3,6 @@
     <%@ page isELIgnored="false"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form"%>
-<%@ page session="false" %>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -21,7 +20,7 @@
     <!--external css-->
     <link href="./resources/static/font-awesome/css/font-awesome.css" rel="stylesheet" />
     <link rel="stylesheet" type="text/css" href="./resources/static/css/zabuto_calendar.css">
-    <link rel="stylesheet" type="text/css" href="./resources/static/js/gritter/css/jquery.gritter.css" />
+    <!-- <link rel="stylesheet" type="text/css" href="./resources/static/js/gritter/css/jquery.gritter.css" /> -->
     <link rel="stylesheet" type="text/css" href="./resources/static/lineicons/style.css">    
     
     <!-- Custom styles for this template -->
@@ -42,23 +41,14 @@
   </head>
 
   <body>
-  
-  <section id="container" >
-      <!-- **********************************************************************************************************************************************************
-      TOP BAR CONTENT & NOTIFICATIONS
-      *********************************************************************************************************************************************************** -->
-      <!--header start-->
+    <section id="container" >
       <header class="header black-bg">
               <div class="sidebar-toggle-box">
                   <div class="fa fa-bars tooltips" data-placement="right" data-original-title="Toggle Navigation"></div>
               </div>
-            <!--logo start-->
             <a href="#" class="logo"><b>Nearby Application</b></a>
-            <!--logo end-->
             <div class="nav notify-row" id="top_menu">
-                <!--  notification start -->
                 <ul class="nav top-menu">
-                    <!-- settings start -->
                     <li class="dropdown">
                         <a data-toggle="dropdown" class="dropdown-toggle" href="index.html#">
                             <i class="fa fa-tasks"></i>
@@ -90,8 +80,6 @@
                             </li>
                         </ul>
                     </li>
-                    <!-- settings end -->
-                    <!-- inbox dropdown start-->
                     <li id="header_inbox_bar" class="dropdown">
                         <a data-toggle="dropdown" class="dropdown-toggle" href="index.html#">
                             <i class="fa fa-envelope-o"></i>
@@ -110,7 +98,6 @@
                                     <span class="time">Just now</span>
                                     </span>
                                     <span class="message">
-                                        Hi mate, how is everything?
                                     </span>
                                 </a>
                             </li>
@@ -122,9 +109,7 @@
                             </li>
                         </ul>
                     </li>
-                    <!-- inbox dropdown end -->
                 </ul>
-                <!--  notification end -->
             </div>
             <div class="top-menu">
             	<ul class="nav pull-right top-menu">
@@ -132,16 +117,8 @@
             	</ul>
             </div>
         </header>
-      <!--header end-->
-      
-       
-      <!-- **********************************************************************************************************************************************************
-      MAIN SIDEBAR MENU
-      *********************************************************************************************************************************************************** -->
-      <!--sidebar start-->
-      <aside>
+        <aside>
           <div id="sidebar"  class="nav-collapse ">
-              <!-- sidebar menu start-->
               <ul class="sidebar-menu" id="nav-accordion">
               
               	  <p class="centered"><img src="./resources/static/img/nearby.png" class="img-circle" width="100"></p>
@@ -177,8 +154,6 @@
                   </li>
 
               </ul>
-              <!-- sidebar menu end-->
           </div>
       </aside>
-      <!--sidebar end-->
       

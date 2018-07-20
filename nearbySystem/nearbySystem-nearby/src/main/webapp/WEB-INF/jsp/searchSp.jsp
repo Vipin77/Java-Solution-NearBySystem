@@ -104,6 +104,8 @@ var countr = document.getElementById("country");
 	var spaddress=[];
 	var spservice=[];
 	var spimg=[];
+	var spbusinessName=[];
+	var spavgrating=[];
 	var spstatus=-1;
 	
 	function searchProvider(){
@@ -118,7 +120,7 @@ var countr = document.getElementById("country");
 			dataType : "json",
 			success : function(data) {
 				alert("Success");
-				 var sp="<h2>&ensp;&ensp;&ensp;&ensp;Available Service Providers</h2><table><thead><tr></tr></thead>";
+				 var sp="<h3>&ensp;&ensp;&ensp;&ensp;Service Providers For "+subCategory+"</h3><table><thead><tr></tr></thead>";
 				 $.each(data, function(key, value) {
 					 spstatus=spstatus+1;
 					 spId.push(value.spId);
@@ -128,8 +130,10 @@ var countr = document.getElementById("country");
 					 spmobile.push(value.mobileNumber);
 					 spaddress.push(value.address);
 					 spservice.push(value.service);
+					 spbusinessName.push(value.businessName);
+					 spavgrating.push(value.avgrating);
 					 spimg.push(value.img);
-					 sp=sp+"<tr><td><img class='avatar' height='100' width='100' src='data:image/jpg;base64,"+value.img+"'/></td><td><h3 style='color: blue'>Service Provider for "+value.service+"</h3>";
+					 sp=sp+"<tr id='myProfileBtn' onclick=onrowclick("+spstatus+")><td><img class='avatar' height='100' width='100' src='data:image/jpg;base64,"+value.img+"'/></td><td><h3 style='color: blue'>"+value.businessName+"</h3>";
 					 var s=0;
 					
 					for(var r=1;r<=5;r++){
@@ -156,21 +160,63 @@ var countr = document.getElementById("country");
 					}
 					
 		            sp=sp+"&emsp; Average Rating: "+value.avgrating+", &ensp;&ensp;<button id='myReviewBtn' onclick=onReview("+value.spId+","+spstatus+")>Reviews</button><br>"+
-		            value.firstName+" "+value.lastName+" <br> Email Id : "+value.email+"<br>"+value.address+" - "+value.mobileNumber+"<br>Open time 10Am and Closed time 8Pm </td><td><br><br><button id='myBtn' onclick=onbtn("+value.latitude+","+value.longitude+",'"+String(value.firstName)+"','"+String(value.mobileNumber)+"')>Show on Map</button></td</tr>";
+		            value.firstName+" "+value.lastName+" <br> Email Id : "+value.email+"<br>"+value.address+" - "+value.mobileNumber+"<br>Open time 10Am and Closed time 8Pm </td><td><br><br><button id='myBtn' onclick=onbtn("+value.latitude+","+value.longitude+",'"+String(value.firstName)+"','"+String(value.mobileNumber)+"',"+spstatus+")>Show on Map</button></td</tr>";
 				}); 
 				sp=sp+"</table>";
 				document.getElementById("spdetails").innerHTML = sp; 
 				 document.getElementById("spcontent").click();
 				if(data==""){
 					document.getElementById("spdetails").innerHTML = "<h2 style='margin-left: 6%;'>Service Prvoiders Are Not Available</h2>";
-				}
-			}
+				  }
+			  }
 		});
 	}
-	
-	function onbtn(lati,longi,fname,m){
-		modal.style.display = "block";
+	var ignoreparent=0;
+	function onrowclick(status){
+		if(ignoreparent==1){
+			ignoreparent=0;
+			return 0;
+			}
+		var e = document.getElementById("cid");
+	       var Category = e.options[e.selectedIndex].text;
+		pmodal.style.display = "block";
 		
+		var content="<h3 style='color: blue;margin-left:36px;'>Category >> "+Category+" >> "+spservice[status]+"</h3>"+
+		"<hr><h3 style='margin-left:36px;'>"+spbusinessName[status]+"</h3>";
+		content=content+"&emsp;&emsp;&emsp;";
+		 var s=0;
+		for(var r=1;r<=5;r++){
+            if(r<=spavgrating[status]){
+            	content=content+"<span class='fa fa-star checked' style='font-size:20px;color:orange'></span>";
+            }else{
+         	   if((r-1)==spavgrating[status]){
+         		   s=1;
+         	   }
+         	   if(s==1){
+         		  content=content+"<span class='fa fa-star' style='font-size:20px;color:Gainsboro'></span>";
+         	   }
+         	   if(s==0){
+         		   if((spavgrating[status]>=((r-1)+.3))&&(spavgrating[status]<=((r-1)+.8))){
+         			  content=content+"<i class='fa fa-star-half-full' style='font-size:20px;color:orange'></i>";
+         		   }if(spavgrating[status]<((r-1)+.3)){
+         			  content=content+"<span class='fa fa-star' style='font-size:20px;color:Gainsboro'></span>";
+         		   }if(spavgrating[status]>((r-1)+.8)){
+         			  content=content+"<span class='fa fa-star checked' style='font-size:20px;color:orange'></span>";
+         		   }
+         		  s=1;
+         	   }
+            }
+			}
+		content=content+"<h4 style='margin-left:36px;'>Address "+spaddress[status]+"</h4>"+
+		"<h4 style='margin-left:36px;'>Phone: "+spmobile[status]+"</h4>"+
+		"<hr><img height='230' width='230' src='data:image/jpg;base64,"+spimg[status]+"'/>";
+		document.getElementById("modal-body3").innerHTML =content;
+	}
+	
+	function onbtn(lati,longi,fname,m,status){
+		ignoreparent=1;
+		modal.style.display = "block";
+		document.getElementById("busnameandaddress").innerHTML=spbusinessName[status]+", Address : "+spaddress[status];
 		var map = new google.maps.Map(document.getElementById('map'), {
 	          zoom: 10,
 	          center: {lat: lati, lng: longi}
@@ -183,6 +229,7 @@ var countr = document.getElementById("country");
 	}
 	
 	function onReview(id,status){
+		ignoreparent=1;
 		//alert(spfname[status]+" "+spemail[status]+" "+splname[status]+" "+spmobile[status]+" "+spaddress[status]+" "+spservice[status]+" "+spimg[status]);
 		var e = document.getElementById("cid");
        var Category = e.options[e.selectedIndex].text;
@@ -194,21 +241,7 @@ var countr = document.getElementById("country");
 		type : "POST",
 		dataType : "json",
 		success : function(data) {
-			/* var addbtn="<div class='form-group'>"+
-	         "<label class="col-sm-2 col-sm-1 control-label">Write Comment</label>"
-			 "<div class="col-sm-5">"
-			"<input type="text" id="comment" name="comment" class="form-control"></div>"
-		  "</div>"
-		   "<div class="form-group">"
-	         "<label class="col-sm-2 col-sm-1 control-label">Give Rating</label>"
-			 "<div class="col-sm-5">"
-			"<input type="text" id="rating" name="rating" class="form-control"></div>"
-		  "</div>"
-		  "<div class="form-group">"
-				"<div class="col-sm-10" style="margin-left: 10%;">"
-				"<input type="button" class="form-submit" value="Add" onclick="#">"
-			"</div>"	
-			"</div>"; */
+			
 			var i=0;
 			var content="<h3 style='color: blue;margin-left:36px;'>Category >> "+Category+" >> "+spservice[status]+"</h3>"+
 			"<table style=' width: 50%;border: 1px solid black;'><thead><tr></tr></thead><tr><td><img height='110' width='110' src='data:image/jpg;base64,"+spimg[status]+"'/></td><td>Category is : "+spservice[status]+"<br>"+
@@ -347,9 +380,8 @@ var countr = document.getElementById("country");
 	   </div><br><br><br>
 	   <div class="form-group">
 			<div class="col-sm-10" style="margin-left: 10%;">
-			<input type="button" class="form-submit" value="Search" onclick="searchProvider()">
+			<input type="button" class="form-submit" value="Search" onclick="searchProvider()"></div><h2 id='C'></h2><br>
 		</div>
-		</div><h2 id='C'></h2>
 	</form>   
 	<br>
 	<div id="spdetails"></div>
@@ -360,7 +392,7 @@ var countr = document.getElementById("country");
   <!-- Modal content -->
   <div class="modal-content">
     <div class="modal-header">
-      <h2>Java Solution Near by System</h2>
+      <h2 id="busnameandaddress"></h2>
     </div>
      <span class="close" style="color: black;">Close</span>
     <div id="map" style="width:100%; height: 465px;"></div>
@@ -385,6 +417,17 @@ var countr = document.getElementById("country");
     </div>
   </div>
 </div>
+
+<!-- The Modal for profile-->
+<div id="profileModal" class="modal">
+  <!-- Modal content -->
+  <div class="modal-content" style="height:85%;width: 50%;">
+    <div style="text-align: right;"><input type="button" id="btn3" value="Close"/></div>
+    <div id="modal-body3" class="modal-body"></div>
+      <h3></h3>
+    </div>
+  </div>
+</div>
 	
 	</section>
 </section>
@@ -395,7 +438,6 @@ var btn = document.getElementById("myBtn");
 // Get the <span> element that closes the modal
 var span = document.getElementsByClassName("close")[0];
 // When the user clicks the button, open the modal 
-
 // When the user clicks on <span> (x), close the modal
 span.onclick = function() {
     modal.style.display = "none";
@@ -410,6 +452,14 @@ btn2.onclick = function() {
     rmodal.style.display = "none";
 }
 
+var pmodal = document.getElementById('profileModal');
+//Get the button that opens the modal
+var profilebtn = document.getElementById("myProfileBtn");
+var span2 = document.getElementsByClassName("close2")[0];
+
+btn3.onclick = function() {
+	pmodal.style.display = "none";
+}
 //When the user clicks anywhere outside of the modal, close it
 window.onclick = function(event) {
     if (event.target == modal) {
@@ -417,6 +467,9 @@ window.onclick = function(event) {
     }
     if (event.target == rmodal) {
         rmodal.style.display = "none";
+    }
+    if (event.target == pmodal) {
+    	pmodal.style.display = "none";
     }
 }
 </script>
