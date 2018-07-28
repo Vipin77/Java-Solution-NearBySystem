@@ -12,8 +12,9 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.nearby.dto.GoogleResponse;
 import org.nearby.dto.Result;
 
-public class AddressConverter {
+public class Main {
 
+	
 	private static final String URL = "http://maps.googleapis.com/maps/api/geocode/json";
 
 	public GoogleResponse convertToLatLong(String fullAddress) throws IOException {
@@ -23,39 +24,25 @@ public class AddressConverter {
 		URLConnection conn = url.openConnection();
 
 		InputStream in = conn.getInputStream();
-		System.out.println(in.available());
-/*		byte[] b=new byte[in.available()];
-		in.read(b);
-		String s=new String(b);
-		System.out.println(s);
-*/		
 		ObjectMapper mapper = new ObjectMapper();
-		 GoogleResponse response = mapper.readValue(in, GoogleResponse.class);
-		 int count=0;
-		 while(!response.getStatus().equals("OK")){
-			 count++;
-			 System.out.println("count = "+count);
-			  conn = url.openConnection();
-			 in = conn.getInputStream();
-			 mapper = new ObjectMapper();
-				 response=null;
-				 response = (GoogleResponse) mapper.readValue(in, GoogleResponse.class);
-			
-		 }
-		
+		GoogleResponse response=null;
+	   try{
+		 response = (GoogleResponse) mapper.readValue(in, GoogleResponse.class);
+	   }catch(Exception e){
+	
+	   }
 		in.close();
 		return response;
 
 	}
 
+	
+	public static void main(String[] args) throws IOException {
+		// TODO Auto-generated method stub
 
-	
-	
-	
-	public static List<String> getLatorLong(String address) throws IOException
-	{
+List<String> list= new ArrayList<String>();
+		String address="vijay nagar"+",Indore"+",Madhya Pradesh 452010,"+"India";
 		
-		List<String> list= new ArrayList<String>();
 		
 		GoogleResponse res = new AddressConverter().convertToLatLong(address);
 		if (res.getStatus().equals("OK")) {
@@ -67,16 +54,10 @@ public class AddressConverter {
 				list.add(result.getGeometry().getLocation().getLat());
 				list.add(result.getGeometry().getLocation().getLng());
 				
-				return list;
 			
 			}
-		} else {
-			list=getLatorLong(address);
-			
-		}
-		
-		
-		return list;
+		} 
+		System.out.println(list);
 	}
 
 }

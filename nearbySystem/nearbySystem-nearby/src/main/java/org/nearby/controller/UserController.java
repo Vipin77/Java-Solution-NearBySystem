@@ -13,6 +13,7 @@ import org.nearby.dao.UserDao;
 import org.nearby.dto.CategoryType;
 import org.nearby.dto.Registration;
 import org.nearby.dto.ResponseClass;
+import org.nearby.dto.ReviewDto;
 import org.nearby.dto.ServiceProvider;
 import org.nearby.dto.UserDto;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +35,7 @@ public class UserController {
 
 	@RequestMapping(value = "/registerUser", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseClass> registerUser(@RequestBody Registration userRegistration) {
-
+      
 		try {
 			userDao.storeSp(userRegistration);
 
@@ -111,27 +112,45 @@ public class UserController {
 
 	}
 
+	@RequestMapping(value = "/fetchServiceName", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<List<String>> fetchServiceName(HttpServletRequest request) {
+
+		String cid = request.getParameter("cid");
+
+		List<String> allService = userDao.fetchServiceName(Integer.parseInt(cid));
+
+		return new ResponseEntity<List<String>>(allService, HttpStatus.OK);
+
+	}
+	
+	@RequestMapping(value = "/fetchCategoryName", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<List<String>> fetchCategoryName(HttpServletRequest request) {
+		String cid = request.getParameter("cid");
+		List<String> allService = userDao.fetchCategoryName(Integer.parseInt(cid));
+		return new ResponseEntity<List<String>>(allService, HttpStatus.OK);
+	}
+	
 	@RequestMapping(value = "/fetchLocationOfsp", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<List<ServiceProvider>> fetchLocationOfsp(HttpServletRequest request)
 			throws SQLException, IOException {
 
-		String service = request.getParameter("service");
+		String serviceid = request.getParameter("service");
 		String latitude = request.getParameter("latitude");
 		String longitude = request.getParameter("longitude");
-		String area = request.getParameter("area");
+		/*String area = request.getParameter("area");
 		String city = request.getParameter("city");
-		String state = request.getParameter("state");
+		String state = request.getParameter("state");*/
 
-		System.out.println(service + " " + latitude + " " + longitude);
+		System.out.println(serviceid + " " + latitude + " " + longitude);
 
-		if (area != null) {
+		/*if (area != null) {
 			System.out.println(area + " " + city + " " + state + " India");
 			final List<String> latOrLong = AddressConverter.getLatorLong(area + "," + city + "," + state + ",India");
 			latitude = latOrLong.get(0);
 			longitude = latOrLong.get(1);
-		}
+		}*/
 
-		List<ServiceProvider> allServices = userDao.fetchSPLocation(service, latitude, longitude);
+		List<ServiceProvider> allServices = userDao.fetchSPLocation(serviceid, latitude, longitude);
 
 		for (ServiceProvider s : allServices) {
 			Blob blob = s.getProfile();
@@ -203,4 +222,46 @@ public class UserController {
 		return new ResponseEntity<List<Integer>>(s,HttpStatus.OK);
 	}
 	
+	@RequestMapping(value = "/spContactDetailInsert", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<List<Integer>> spContactDetailInsert(HttpServletRequest request) {
+		String spId = request.getParameter("spId");
+		String latitude = request.getParameter("latitude");
+		String longitude = request.getParameter("longitude");
+		if(latitude==null){
+			latitude ="";
+			longitude="";
+		}
+		HttpSession session = request.getSession(false);
+		System.out.println("User id =  "+session.getAttribute("userId"));
+		Object s1=session.getAttribute("userId");
+		
+		System.out.println(latitude+" "+longitude);
+		int result= userDao.insertContactDetail(Integer.parseInt(spId),latitude,longitude,String.valueOf(s1));
+		List<Integer> s=new ArrayList<Integer>();
+		s.add(result);
+		return new ResponseEntity<List<Integer>>(s, HttpStatus.OK);
+	}
+	
+	
+	@RequestMapping(value = "/fetchNoOfReview", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<List<Integer>> fetchNoOfReview(HttpServletRequest request) {
+		String spId = request.getParameter("spId");
+		int result =userDao.fetchNoOfReview(Integer.parseInt(spId));
+		List<Integer> s=new ArrayList<Integer>();
+		s.add(result);
+		return new ResponseEntity<List<Integer>>(s, HttpStatus.OK);
+
+	}
+	
+	
+	@RequestMapping(value = "/fetchUserReview",method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ReviewDto> fetchUserReviewDetails(HttpServletRequest request) {
+		String spId = request.getParameter("spId");
+		String userId = request.getParameter("userId");
+		ReviewDto dto = userDao.fetchUserReviewDetails(Integer.parseInt(spId),Integer.parseInt(userId));
+		if(dto==null){
+			dto=null;
+		}
+		return new ResponseEntity<ReviewDto>( dto,HttpStatus.OK);
+	}
 }

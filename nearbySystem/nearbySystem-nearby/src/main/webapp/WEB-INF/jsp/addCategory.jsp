@@ -14,7 +14,11 @@
 
 		<section id="main-content">
 	
-			<section class="wrapper">
+			<section class="wrapper"><% Object s= session.getAttribute("aId");
+         if(s==null){%>
+        	  <% response.sendRedirect("adminHome");%>
+         <% }
+      %>
 				<h4>
 					<i class="fa fa-angle-right"></i> Add Category
 				</h4>

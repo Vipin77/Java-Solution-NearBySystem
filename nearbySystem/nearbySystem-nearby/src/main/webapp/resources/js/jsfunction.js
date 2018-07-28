@@ -40,7 +40,7 @@ var countr = document.getElementById("country");
 		var countySel = document.getElementById("country");
 		var stateSel = document.getElementById("state");	
 		var citySel = document.getElementById("city");
-		//Load countries
+		//Load countries  
 		for (var country in countryStateInfo) {
 			countySel.options[countySel.options.length] = new Option(country, country);
 		}

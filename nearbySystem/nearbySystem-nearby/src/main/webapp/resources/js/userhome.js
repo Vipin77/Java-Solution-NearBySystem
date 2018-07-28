@@ -1,3 +1,4 @@
+var x = document.getElementById("demo");
 function getLocation() {
 	if (navigator.geolocation) {
 		navigator.geolocation.getCurrentPosition(showPosition);
@@ -333,27 +334,28 @@ function showPoint(service)
 	      center: new google.maps.LatLng(lati, longi),
 	      mapTypeId: google.maps.MapTypeId.ROADMAP,
 	    });
-
 	    var infowindow = new google.maps.InfoWindow();
 	    var marker, i;
        var icon1;
+       var servicen = document.getElementById("servicename").value;
 	    for (i = -1; i < locationsPointLati.length; i++) { 
-	    	if(service=="Mobile Phones"){
+	    	if(servicen=="Mobile Phones"){
+	    		alert(match);
 		    	  icon1 = {url: "resources/images/locationlogo/mobilelogo.png",
 		    			  scaledSize: new google.maps.Size(40, 40)
 						}; 
 		         }
-		    if(service=="Bata"){
+		    if(servicen=="Bata"){
 		    	  icon1 = {url: "resources/images/locationlogo/batalogo.jpg",
 						    scaledSize: new google.maps.Size(40, 40)
 						}; 
 		    }
-		    if(service=="vegetable"){
+		    if(servicen=="vegetable"){
 		    	  icon1 = {url: "resources/images/locationlogo/vegetable.jpg",
 						    scaledSize: new google.maps.Size(40, 40)
 						}; 
 		    }
-		    if(service=="Dentist"){
+		    if(servicen=="Dentist"){
 		    	  icon1 = {url: "resources/images/locationlogo/Dentist.png",
 						    scaledSize: new google.maps.Size(40, 40)
 						}; 
@@ -572,7 +574,7 @@ function Review(id,status){
 }
 
 
-function addReview(spid,userid,status){
+function addReview(spid,userid,status,ff){
 	var rating=ratingcheck();
 	var rev=document.getElementById("rev").value;
 	$.ajax({
@@ -581,7 +583,7 @@ function addReview(spid,userid,status){
 		type : "POST",
 		dataType : "json",
 		success : function(data){
-			alert(data);
+			alert(data+" with f "+ff);
 			addrevmodal.style.display = "none";
 			onReview(spid,status);
 		}

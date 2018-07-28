@@ -47,6 +47,11 @@ function fetchServices(cid)
 <section id="main-content">
 
 	<section class="wrapper">
+	<% Object s= session.getAttribute("aId");
+         if(s==null){%>
+        	  <% response.sendRedirect("adminHome");%>
+         <% }
+      %>
 		<h4>
 			<i class="fa fa-angle-right"></i> Add SubCategory
 		</h4>
@@ -97,10 +102,8 @@ function fetchServices(cid)
 							<label class="col-sm-2 col-sm-2 control-label">Type</label>
 							<div class="col-sm-10">
 								<select class="form-control" name="type" required="required">
+                                    <option value="static">Static</option>
 									<option value="mobile">Mobile</option>
-									<option value="static">Static</option>
-
-
 								</select>
 							</div>
 						</div>

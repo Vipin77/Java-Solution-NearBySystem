@@ -23,6 +23,8 @@ public class Registration {
 	private double avgrating;
 	 private String businessName;
 		private String homeService;
+		 private String latitude;
+			private String longitude;
 		
 		public String getBusinessName() {
 			return businessName;
@@ -182,6 +184,22 @@ public class Registration {
 
 	public void setPassword(String password) {
 		this.password = password;
+	}
+
+	public String getLatitude() {
+		return latitude;
+	}
+
+	public void setLatitude(String latitude) {
+		this.latitude = latitude;
+	}
+
+	public String getLongitude() {
+		return longitude;
+	}
+
+	public void setLongitude(String longitude) {
+		this.longitude = longitude;
 	}
 
 	

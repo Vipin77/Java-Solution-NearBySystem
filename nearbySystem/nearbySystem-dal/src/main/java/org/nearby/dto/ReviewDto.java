@@ -6,6 +6,7 @@ public class ReviewDto {
 	private String rating;
 	private String review;
 	private int userId;
+	private int spId;
 	public int getReviewId() {
 		return reviewId;
 	}
@@ -29,6 +30,12 @@ public class ReviewDto {
 	}
 	public void setUserId(int userId) {
 		this.userId = userId;
+	}
+	public int getSpId() {
+		return spId;
+	}
+	public void setSpId(int spId) {
+		this.spId = spId;
 	}
 	
 	

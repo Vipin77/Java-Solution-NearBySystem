@@ -22,6 +22,7 @@ import org.nearby.dto.Registration;
 import org.nearby.dto.ReviewDto;
 import org.nearby.dto.ServiceDto;
 import org.nearby.dto.ServiceProvider;
+import org.nearby.dto.SubCategoryType;
 import org.nearby.dto.UserDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -63,8 +64,6 @@ public class UserDao {
 		final String state = userRegistration.getState();
 		String country = "India";
 
-		final List<String> latOrLong = AddressConverter
-				.getLatorLong(address + "," + city + "," + state + "," + country);
 
 		final SerialBlob blob = new javax.sql.rowset.serial.SerialBlob(userRegistration.getProfile());
 		int status = template.update(new PreparedStatementCreator() {
@@ -98,15 +97,17 @@ public class UserDao {
 				Integer.class);
 
 		final String query2 = "insert into sp_master(spId,latitude,longitude) values(?,?,?)";
-
+		System.out.println(userRegistration.getLatitude()+" ..  "+userRegistration.getLongitude());
+        final Double lat=Double.parseDouble(userRegistration.getLatitude());
+        final Double longg=Double.parseDouble(userRegistration.getLongitude());
 		int status2 = template.update(new PreparedStatementCreator() {
 
 			public PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
 
 				PreparedStatement ps = connection.prepareStatement(query2);
 				ps.setInt(1, spId);
-				ps.setDouble(2, Double.parseDouble(latOrLong.get(0)));
-				ps.setDouble(3, Double.parseDouble(latOrLong.get(1)));
+				ps.setDouble(2, lat);
+				ps.setDouble(3, longg);
 
 				return ps;
 			}
@@ -128,10 +129,9 @@ public class UserDao {
 		final String address = uDto.getAddress();
 		final String city = uDto.getCity();
 		final String state = uDto.getState();
+		final Double latitude = uDto.getLatitude();
+		final Double longitude = uDto.getLongitude();
 		final String country = "India";
-
-		final List<String> latOrLong = AddressConverter
-				.getLatorLong(address + "," + city + "," + state + "," + country);
 
 		final SerialBlob blob = new javax.sql.rowset.serial.SerialBlob(uDto.getProfile());
 		int status = template.update(new PreparedStatementCreator() {
@@ -149,8 +149,8 @@ public class UserDao {
 				ps.setString(8, state);
 				ps.setString(9, country);
 				ps.setBlob(10, blob);
-				ps.setDouble(11, Double.parseDouble(latOrLong.get(0)));
-				ps.setDouble(12, Double.parseDouble(latOrLong.get(1)));
+				ps.setDouble(11,latitude);
+				ps.setDouble(12,longitude);
 				ps.setInt(13, 0);
 				ps.setInt(14, 0);
 				ps.setTimestamp(15, timestamp);
@@ -201,25 +201,48 @@ public class UserDao {
 
 	public List<CategoryType> fetchType() {
 		// TODO Auto-generated method stub
-		List<CategoryType> dto = template.query("select * from category_master ",
+		List<CategoryType> dto = template.query("select * from category_master",
 				new BeanPropertyRowMapper<CategoryType>(CategoryType.class));
-
+		for(CategoryType category:dto){
+			List<SubCategoryType> sub = template.query("select * from service_category where categoryId=" + category.getCategoryId() + " ",
+					new BeanPropertyRowMapper<SubCategoryType>(SubCategoryType.class));
+			category.setSubCategoryType(sub);
+		}
 		return dto;
 	}
 
 	public List<String> fetchAllServices(int cid) {
 		// TODO Auto-generated method stub
-
 		List<ServiceDto> dto = template.query("select * from service_category where categoryId=" + cid + " ",
 				new BeanPropertyRowMapper<ServiceDto>(ServiceDto.class));
 		List<String> list = new ArrayList<String>();
-
 		for (ServiceDto local : dto) {
-
+			System.out.println(local.getService() + " - " + local.getType());
 			list.add(local.getService() + " - " + local.getType());
-
 		}
 		return list;
+	}
+	
+	public List<String> fetchServiceName(int cid) {
+		// TODO Auto-generated method stub
+		List<SubCategoryType> dto =template.query("select service from service_category where subcategoryId="+cid+"",
+				new BeanPropertyRowMapper<SubCategoryType>(SubCategoryType.class));
+		List<String> s= new ArrayList<String>();
+		for(SubCategoryType sub:dto){
+			s.add(sub.getService());
+		}
+		return s;
+	}
+	
+	public List<String> fetchCategoryName(int cid) {
+		// TODO Auto-generated method stub
+		List<CategoryType> dto =template.query("select categoryType from category_master where categoryId="+cid+"",
+				new BeanPropertyRowMapper<CategoryType>(CategoryType.class));
+		List<String> s= new ArrayList<String>();
+		for(CategoryType sub:dto){
+			s.add(sub.getCategoryType());
+		}
+		return s;
 	}
 
 	public List<String> fetchAllEmail() {
@@ -287,24 +310,19 @@ public class UserDao {
 		return list;
 	}
 
-	public List<ServiceProvider> fetchSPLocation(String service, String latitude, String longitude) {
-
-		List<Integer> subCategoryIdList = template.queryForList(
-				"select subcategoryId from service_category where service='" + service + "'", Integer.class);
+	public List<ServiceProvider> fetchSPLocation(String serviceid, String latitude, String longitude) {
 
 		List<ServiceProvider> providers = new ArrayList<ServiceProvider>();
-		for (Integer subCategoryId : subCategoryIdList) {
-
 			List<ServiceProvider> list = template.query(
 					"SELECT s.firstName,s.mobileNumber,s.email,s.address,s.spId,s.profile,s.avgrating,s.lastname,s.businessName,p.latitude,p.longitude,( 6371 * ACOS( COS( RADIANS("
 							+ latitude + "  ) ) * COS( RADIANS( p.latitude ) ) * COS( RADIANS( p.longitude )- RADIANS("
 							+ longitude + " ) ) + SIN( RADIANS( " + latitude
 							+ ") ) * SIN( RADIANS( p.latitude ) ) ) ) AS distance FROM registration_master s ,sp_master p , service_category sc WHERE  sc.subcategoryId="
-							+ subCategoryId
-							+ " AND sc.subcategoryId=s.subcategoryId AND s.spId=p.spId HAVING distance <5",
+							+ serviceid
+							+ " AND sc.subcategoryId=s.subcategoryId AND s.spId=p.spId HAVING distance <2",
 					new BeanPropertyRowMapper<ServiceProvider>(ServiceProvider.class));
 			providers.addAll(list);
-		}
+		
 		// TODO Auto-generated method stub
 		return providers;
 	}
@@ -604,23 +622,56 @@ public class UserDao {
 		return providers;
 	}
 	
-	public int addReview(final int spId,final String review,final int userId,final double rating) {
-
-		final String query2 = "insert into sp_review(spId,userId,review,rating) values(?,?,?,?)";
-
-		int status = template.update(new PreparedStatementCreator() {
+	public int insertContactDetail(final int spId,final String lat,final String longi,final String userId) {
+		// TODO Auto-generated method stub
+		final Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+			final String query2 = "insert into user_spmaster(spId,userId,latitude,longitude,Date) values(?,?,?,?,?)";
+			int result = template.update(new PreparedStatementCreator() {
 
 			public PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
-
 				PreparedStatement ps = connection.prepareStatement(query2);
 				ps.setInt(1, spId);
-				ps.setInt(2, userId);
-				ps.setString(3,review);
-				ps.setDouble(4,rating);
-
+				ps.setString(2, userId);
+				ps.setDouble(3,Double.parseDouble(lat));
+				ps.setDouble(4,Double.parseDouble(longi));
+				ps.setTimestamp(5,timestamp);
 				return ps;
 			}
 		});
+		return result;
+	}
+	
+	public int addReview(final int spId,final String review,final int userId,final double rating) {
+		int status=0;
+		try{
+		Integer rId = template.queryForObject("SELECT reviewId FROM sp_review WHERE spId='"+spId+"' AND userId='"+userId+"'", Integer.class);
+		status=1;
+		if(rating==0){
+		template.update("UPDATE sp_review SET review='"+review+"' WHERE reviewId='"+rId+"'");
+		}
+		else{
+			template.update("UPDATE sp_review SET review='"+review+"', rating='"+rating+"' WHERE reviewId='"+rId+"'");
+			}
+		}catch(Exception e){
+			
+			final String query2 = "insert into sp_review(spId,userId,review,rating) values(?,?,?,?)";
+
+			status = template.update(new PreparedStatementCreator() {
+
+				public PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
+
+					PreparedStatement ps = connection.prepareStatement(query2);
+					ps.setInt(1, spId);
+					ps.setInt(2, userId);
+					ps.setString(3,review);
+					ps.setDouble(4,rating);
+
+					return ps;
+				}
+			});
+		
+		}
+		
 		List<ReviewDto> providers = new ArrayList<ReviewDto>();
 		List<ReviewDto> list = template.query("SELECT rating FROM sp_review WHERE spId=" + spId + "",
 				new BeanPropertyRowMapper<ReviewDto>(ReviewDto.class));
@@ -689,6 +740,27 @@ public class UserDao {
 				UserDto user=  template.queryForObject("SELECT * FROM user_master WHERE userId=" + userId + "",
 				new BeanPropertyRowMapper<UserDto>(UserDto.class));
 		return user;
+	}
+
+	public int fetchNoOfReview(int spId) {
+		
+		Integer user = template.queryForObject("SELECT COUNT(*) FROM sp_review WHERE spId='"+spId+"'", Integer.class);
+		return user;
+	}
+
+	public ReviewDto fetchUserReviewDetails(int spId,int userId) {
+		
+		try{
+		ReviewDto rDto=  template.queryForObject("SELECT * FROM sp_review WHERE spId='"+spId+"' AND userId='"+userId+"'",
+				new BeanPropertyRowMapper<ReviewDto>(ReviewDto.class));
+		
+		System.out.println(rDto.getReview()+" of sp id "+spId+" with user id "+userId);
+		return rDto;
+		}catch(Exception e){
+			return null;
+		}
+		
+		
 	}
 
 }

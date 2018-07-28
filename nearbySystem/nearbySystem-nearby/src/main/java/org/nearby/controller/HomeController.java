@@ -92,6 +92,8 @@ public class HomeController {
 	public String logout(HttpServletRequest request, RedirectAttributes redirectAttributes) {
 
 		HttpSession session = request.getSession(false);
+		
+		session.setAttribute("aId",null);
 		session.invalidate();
 		redirectAttributes.addFlashAttribute("message", "Logout successfully");
 		return "redirect:/adminHome";
@@ -122,6 +124,8 @@ public class HomeController {
 		MultipartHttpServletRequest multiRequest = (MultipartHttpServletRequest) request;
 		MultipartFile file = multiRequest.getFile("profile");
 		byte []b=file.getBytes();
+   		String latitude=request.getParameter("latitude");
+		 String longitude=request.getParameter("longitude");
 		 String firstName=request.getParameter("firstName");
 		 String lastName=request.getParameter("lastName");
 		 String mobile=request.getParameter("mobile");
@@ -129,7 +133,8 @@ public class HomeController {
 		 String email=request.getParameter("emailId");
 		 String address=request.getParameter("address");
 		 String country=request.getParameter("country").trim();
-		 String state=request.getParameter("state").trim();
+		 String state=request.getParameter("state1").trim();
+		 System.out.println("State of user = "+state);
 		 String city=request.getParameter("city").trim();
 		 
 		 UserDto userDto=new UserDto();
@@ -143,6 +148,8 @@ public class HomeController {
 		 userDto.setState(state);
 		 userDto.setCountry(country);
 		 userDto.setProfile(b);
+		 userDto.setLatitude(Double.parseDouble(latitude));
+		 userDto.setLongitude(Double.parseDouble(longitude));
 		 
 		 int result=userDao.storeUser(userDto);
 		 
@@ -155,7 +162,16 @@ public class HomeController {
 	}
 
 	@RequestMapping(value = "/addSp")
-	public ModelAndView addUser(Model model) {
+	public ModelAndView addUser(Model model,HttpServletRequest request) {
+		HttpSession session = request.getSession(false);
+		System.out.println("Admin id =  "+session.getAttribute("aId"));
+		Object s1=session.getAttribute("aId");
+		if(s1==null){
+			ModelAndView map = new ModelAndView("loginPage");
+			map.addObject("message", "First You Have to Login..");
+			return map;
+		}
+		
 		model.addAttribute("registration", new Registration());
 
 		List<CategoryType> listOfCategory = userDao.fetchType();
@@ -168,10 +184,21 @@ public class HomeController {
 	public String storeSp(RedirectAttributes redirectAttributes,HttpServletRequest request)
 			throws IOException, ServletException, SerialException, SQLException {
 		
+		HttpSession session = request.getSession(false);
+		System.out.println("Admin id =  "+session.getAttribute("aId"));
+		Object s1=session.getAttribute("aId");
+		if(s1==null){
+			redirectAttributes.addFlashAttribute("message", "First You have to login..");
+			return "redirect:/adminHome";
+		}
+		
 		MultipartHttpServletRequest multiRequest = (MultipartHttpServletRequest) request;
 		MultipartFile file = multiRequest.getFile("profile");
 		byte []b=file.getBytes();
 		 
+		String latitude=request.getParameter("latitude");
+		 String longitude=request.getParameter("longitude");
+		 System.out.println(latitude+" ... "+longitude);
 		 String businessName=request.getParameter("businessName");
 		 String firstName=request.getParameter("firstName");
 		 String lastName=request.getParameter("lastName");
@@ -181,7 +208,8 @@ public class HomeController {
 		 String address=request.getParameter("address");
 		 Integer categoryId=Integer.parseInt(request.getParameter("categoryId"));
 		 String subCategory=request.getParameter("subCategory");
-		 String state=request.getParameter("state").trim();
+		 String state=request.getParameter("state1").trim();
+		 System.out.println("state = "+state);
 		 String city=request.getParameter("city").trim();
 		 String homeService=request.getParameter("homeService").trim();
 		 
@@ -209,14 +237,16 @@ public class HomeController {
 		user.setCity(city);
 		user.setProfile(b);
 		user.setHomeService(homeService);
-		
+	    user.setLatitude(latitude);
+	    user.setLongitude(longitude);
 		String str = user.getSubCategory();
   
 		String[] obj = str.split("\\-");
 
 		user.setSubCategory(obj[0].trim());
 		user.setType(obj[1].trim());
-		userDao.storeSp(user);
+		userDao.storeSp(user); 
+		
 		redirectAttributes.addFlashAttribute("message", "SP added successfully");
 		return "redirect:/addSp";
 	}
@@ -230,6 +260,7 @@ public class HomeController {
 
 		if (userId.equals("admin") && pass.equals("admin")) {
 			HttpSession session = servletRequest.getSession(true);
+			session.setAttribute("aId",userId);
 			return "adminHomePage";
 		}
 		redirectAttributes.addFlashAttribute("message", "Invalid username and password");
@@ -243,8 +274,17 @@ public class HomeController {
 	}
 
 	@RequestMapping(value = "/addCategory")
-	public ModelAndView addCategory() {
+	public ModelAndView addCategory(HttpServletRequest request) {
 
+		HttpSession session = request.getSession(false);
+		System.out.println("Admin id =  "+session.getAttribute("aId"));
+		Object s1=session.getAttribute("aId");
+		if(s1==null){
+			ModelAndView map = new ModelAndView("loginPage");
+			map.addObject("message", "First You Have to Login..");
+			return map;
+		}
+		
 		List<CategoryType> listOfCategory = userDao.fetchType();
 		ModelAndView map = new ModelAndView("addCategory");
 		map.addObject("listOfType", listOfCategory);
@@ -254,6 +294,14 @@ public class HomeController {
 
 	@RequestMapping(value = "/storeCategory")
 	public String storeCategory(HttpServletRequest request, RedirectAttributes redirectAttributes) {
+		
+		HttpSession session = request.getSession(false);
+		System.out.println("Admin id =  "+session.getAttribute("aId"));
+		Object s1=session.getAttribute("aId");
+		if(s1==null){
+			redirectAttributes.addFlashAttribute("message", "First You have to login..");
+			return "redirect:/adminHome";
+		}
 		String categoryType = request.getParameter("type");
 
 		userDao.storeCategoryType(categoryType);
@@ -264,8 +312,17 @@ public class HomeController {
 	}
 
 	@RequestMapping(value = "/addSubCategory")
-	public ModelAndView addSubCategory() {
+	public ModelAndView addSubCategory(HttpServletRequest request) {
 
+		HttpSession session = request.getSession(false);
+		System.out.println("Admin id =  "+session.getAttribute("aId"));
+		Object s1=session.getAttribute("aId");
+		if(s1==null){
+			ModelAndView map = new ModelAndView("loginPage");
+			map.addObject("message", "First You Have to Login..");
+			return map;
+		}
+		
 		List<CategoryType> listOfCategory = userDao.fetchType();
 		ModelAndView map = new ModelAndView("addSubCategory");
 		map.addObject("listOfType", listOfCategory);
@@ -275,6 +332,14 @@ public class HomeController {
 	
 	@RequestMapping(value = "/storeSubCategory")
 	public String storeSubCategory(HttpServletRequest request, RedirectAttributes redirectAttributes) {
+		HttpSession session = request.getSession(false);
+		System.out.println("Admin id =  "+session.getAttribute("aId"));
+		Object s1=session.getAttribute("aId");
+		if(s1==null){
+			redirectAttributes.addFlashAttribute("message", "First You have to login..");
+			return "redirect:/adminHome";
+		}
+		
 		String categoryType = request.getParameter("categorytype");
 		String subCategoryType = request.getParameter("subType");
 		String type = request.getParameter("type");
